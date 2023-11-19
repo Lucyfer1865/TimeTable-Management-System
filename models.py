@@ -12,10 +12,19 @@ class Course:
         self.sections = []  # It will contain all Section objects of the respective course
         Course.all_course.append(self)
 
-    def get_all_sections(self):
+    def get_all_sections(self, lect = 0, tut = 0, lab = 0):
+        
 
         for section in self.sections: #Print all sections of the course
-            print(f"Section Name: {section.name}, Days: {section.days}, Time: {section.time}, Instructor: {section.instructor}") 
+            if lect == 0:
+                if isinstance(section, Lecture):
+                    print(f"Section Name: {section.name}, Days: {section.days}, Time: {section.time}, Instructor: {section.instructor}") 
+            if tut == 0:
+                if isinstance(section, Tutorial):
+                    print(f"Section Name: {section.name}, Days: {section.days}, Time: {section.time}, Instructor: {section.instructor}")
+            if lab == 0:
+                if isinstance(section, Lab):
+                    print(f"Section Name: {section.name}, Days: {section.days}, Time: {section.time}, Instructor: {section.instructor}")
 
     def __str__(self):
         print(f"Course Name: {self.name}, Exam Date: {self.exam_date}") # Basic Info
@@ -35,6 +44,16 @@ class Course:
 
 class Section:
 
+    def __new__(cls, name, days, time, instructor, course):
+        if name[0] == 'L':
+            return super(Section, cls).__new__(Lecture)
+        elif name[0] == 'T':
+            return super(Section, cls).__new__(Tutorial)
+        elif name[0] == 'P':
+            return super(Section, cls).__new__(Lab)
+        else:
+            return super(Section, cls).__new__(cls)
+        
     def __init__(self, name, days, time, instructor, course):
         self.name = name
         self.days = days
@@ -42,6 +61,21 @@ class Section:
         self.instructor = instructor
         self.course = course
         course.sections.append(self) # Automatically add the section to the respective course course
+
+class Lecture(Section):
+    def __init__(self, name, days, time, instructor, course):
+        super().__init__(name, days, time, instructor, course)
+        self.type = 'Lecture'
+
+class Tutorial(Section):
+    def __init__(self, name, days, time, instructor, course):
+        super().__init__(name, days, time, instructor, course)
+        self.type = 'Tutorial'
+
+class Lab(Section):
+    def __init__(self, name, days, time, instructor, course):
+        super().__init__(name, days, time, instructor, course)
+        self.type = 'Lab'
 
 
 class TimeTable:
@@ -294,9 +328,23 @@ class StudentMenu:
                 case '1':
                     print("\n-------------------------------------------------------------------------------------------")
                     for course in Course.all_course:
+                        lect = 0
+                        tut = 0
+                        lab = 0
+
                         print("\n")
                         course.__str__()
-                        course.get_all_sections()
+                        for section in self.st_timetable.sections: #To check if a type of section has already been added to the timetable
+                            if section.type == 'Lecture' and section.course.name == course.name:
+                                lect += 1
+                            elif section.type == 'Tutorial' and section.course.name == course.name:
+                                tut += 1
+                            elif section.type == 'Lab' and section.course.name == course.name:
+                                lab += 1
+                            else:
+                                pass
+                        
+                        course.get_all_sections(lect , tut, lab) #Print sections of the course that can still be picked
                     print("\n-------------------------------------------------------------------------------------------")
 
                 case '2':
